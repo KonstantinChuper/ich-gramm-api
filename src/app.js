@@ -12,8 +12,16 @@ import notificationRoutes from './routes/notificationRoutes.js';
 // Инициализация приложения Express
 const app = express();
 
-// Middleware для обработки CORS
-app.use(cors());
+// app.js
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Добавьте поддержку для формы с файлами
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware для обработки JSON
 app.use(express.json());

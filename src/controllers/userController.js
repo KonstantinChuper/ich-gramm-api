@@ -4,7 +4,19 @@ import multer from 'multer';
 
 // Настройка multer для загрузки изображений
 const storage = multer.memoryStorage(); // Сохраняем файл в памяти
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Только изображения разрешены"));
+    }
+  },
+});
 
 // controllers/userController.js
 export const getCurrentUser = async (req, res) => {
@@ -33,7 +45,7 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-// Обновить профиль пользователя
+// controllers/userController.js
 export const updateUserProfile = async (req, res) => {
   const userId = getUserIdFromToken(req);
 
@@ -53,12 +65,13 @@ export const updateUserProfile = async (req, res) => {
 
     // Если передано изображение, преобразуем его в Base64
     if (req.file) {
-      const base64Image = req.file.buffer.toString('base64'); // Преобразуем файл в Base64
+      const base64Image = req.file.buffer.toString('base64');
       user.profile_image = base64Image;
     }
 
     const updatedUser = await user.save();
-    res.status(200).json(updatedUser);
+    // Изменяем формат ответа
+    res.status(200).json({ user: updatedUser }); // Оборачиваем в объект с ключом user
   } catch (error) {
     res.status(500).json({ message: 'Ошибка обновления профиля', error: error.message });
   }
