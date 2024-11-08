@@ -98,3 +98,45 @@ export const updatePost = async (req, res) => {
     res.status(500).json({ error: 'Ошибка при обновлении поста' });
   }
 };
+
+// Получение ленты постов для главной страницы
+export const getFeedPosts = async (req, res) => {
+  const userId = getUserIdFromToken(req);
+
+  try {
+    // Получаем текущего пользователя с его подписками
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    // Получаем ID пользователей, на которых подписан текущий пользователь
+    const following = currentUser.following || [];
+
+    // Получаем посты от пользователей, на которых подписан текущий пользователь
+    const followingPosts = await Post.find({
+      user_id: { $in: following }
+    })
+    .sort({ created_at: -1 }) // Сортировка по дате (новые первыми)
+    .limit(10); // Ограничиваем количество постов
+
+    // Если постов мало, добавляем популярные посты
+    if (followingPosts.length < 10) {
+      // Получаем популярные посты (например, с наибольшим количеством лайков)
+      const popularPosts = await Post.find({
+        user_id: { $nin: [...following, userId] } // Исключаем посты от тех, на кого подписаны и свои
+      })
+      .sort({ likes_count: -1 })
+      .limit(10 - followingPosts.length);
+
+      // Объединяем посты
+      const allPosts = [...followingPosts, ...popularPosts];
+      return res.status(200).json({ posts: allPosts });
+    }
+
+    res.status(200).json({ posts: followingPosts });
+  } catch (error) {
+    console.error('Feed error:', error);
+    res.status(500).json({ error: 'Ошибка при получении ленты' });
+  }
+};
