@@ -27,5 +27,5 @@ router.get("/current", authMiddleware, getCurrentUser);
 
 // Получение профиля пользователя
 router.get("/:userId", getUserProfile);
-
+  
 export default router;

@@ -13,27 +13,34 @@ export const getPostComments = async (req, res) => {
 
 // Создание комментария
 export const createComment = async (req, res) => {
-  const { postId, userId } = req.params;
-  const { comment_text } = req.body;
+  const { postId } = req.params;
+  const { comment_text, user_id } = req.body;
 
   try {
+    // Проверяем существование поста
     const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ error: 'Пост не найден' });
+    if (!post) {
+      return res.status(404).json({ error: 'Пост не найден' });
+    }
 
-    const comment = new Comment({
+    // Создаем новый комментарий
+    const newComment = new Comment({
       post_id: postId,
-      user_id: userId,
+      user_id,
       comment_text,
-      created_at: new Date(),
     });
 
-    await comment.save();
+    // Сохраняем комментарий
+    const savedComment = await newComment.save();
 
-    post.comments_count += 1;
-    await post.save();
+    // Увеличиваем счетчик комментариев в посте
+    await Post.findByIdAndUpdate(postId, { $inc: { comments_count: 1 } });
 
-    res.status(201).json(comment);
+    // Возвращаем созданный комментарий
+    res.status(201).json(savedComment);
+
   } catch (error) {
+    console.error('Server error:', error); // добавляем лог для отладки
     res.status(500).json({ error: 'Ошибка при создании комментария' });
   }
 };
