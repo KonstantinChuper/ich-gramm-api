@@ -1,6 +1,7 @@
 import User from '../models/userModel.js';
 import getUserIdFromToken from '../utils/helpers.js';
 import multer from 'multer';
+import cloudinary from "../config/cloudinary.js";
 
 // Настройка multer для загрузки изображений
 const storage = multer.memoryStorage(); // Сохраняем файл в памяти
@@ -52,28 +53,38 @@ export const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
+      return res.status(404).json({ message: "Пользователь не найден" });
     }
 
-    // Извлекаем поля из req.body
     const { username, full_name, bio } = req.body;
 
-    // Обновляем поля пользователя
     if (username) user.username = username;
     if (full_name) user.full_name = full_name;
     if (bio) user.bio = bio;
 
-    // Если передано изображение, преобразуем его в Base64
     if (req.file) {
-      const base64Image = req.file.buffer.toString('base64');
-      user.profile_image = base64Image;
+      // Если есть старое изображение, удаляем его
+      if (user.cloudinary_id) {
+        await cloudinary.uploader.destroy(user.cloudinary_id);
+      }
+
+      // Преобразуем буфер в base64
+      const b64 = Buffer.from(req.file.buffer).toString("base64");
+      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+      // Загружаем в cloudinary
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: "profiles",
+      });
+
+      user.profile_image = result.secure_url;
+      user.cloudinary_id = result.public_id;
     }
 
     const updatedUser = await user.save();
-    // Изменяем формат ответа
-    res.status(200).json({ user: updatedUser }); // Оборачиваем в объект с ключом user
+    res.status(200).json({ user: updatedUser });
   } catch (error) {
-    res.status(500).json({ message: 'Ошибка обновления профиля', error: error.message });
+    res.status(500).json({ message: "Ошибка обновления профиля", error: error.message });
   }
 };
 

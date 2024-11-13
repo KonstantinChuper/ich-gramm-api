@@ -8,6 +8,8 @@ import searchRoutes from './routes/searchRoutes.js';
 import likeRoutes from './routes/likeRoutes.js';
 import followRoutes from './routes/followRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import dotenv from "dotenv";
+dotenv.config();
 
 // Инициализация приложения Express
 const app = express();

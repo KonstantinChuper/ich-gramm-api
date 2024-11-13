@@ -1,6 +1,6 @@
 import express from 'express';
 import upload from '../middlewares/multer.js';
-import { createPost, getPostById, updatePost, deletePost, getUserPosts, getFeedPosts } from '../controllers/postController.js';
+import { createPost, getPostById, updatePost, deletePost, getUserPosts, getFeedPosts, getUserPostsById } from '../controllers/postController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -22,5 +22,8 @@ router.get('/all', authMiddleware, getUserPosts);
 
 // Получение ленты постов для главной страницы
 router.get("/feed", authMiddleware, getFeedPosts);
+
+// Получение постов конкретного пользователя
+router.get('/user/:userId', authMiddleware, getUserPostsById);
 
 export default router;
