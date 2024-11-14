@@ -142,8 +142,8 @@ export const getFeedPosts = async (req, res) => {
     const followingPosts = await Post.find({
       user_id: { $in: following },
     })
-      .sort({ created_at: -1 }) // Сортировка по дате (новые первыми)
-      .limit(10); // Ограничиваем количество постов
+      .sort({ created_at: -1 })
+      .limit(10);
 
     // Если постов мало, добавляем популярные посты
     if (followingPosts.length < 10) {
@@ -174,5 +174,38 @@ export const getUserPostsById = async (req, res) => {
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: "Ошибка при получении постов" });
+  }
+};
+
+// Получение постов для страницы explore
+export const getExplorePosts = async (req, res) => {
+  const userId = getUserIdFromToken(req);
+
+  try {
+    // Получаем текущего пользователя с его подписками
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({ error: "Пользователь не найден" });
+    }
+
+    // Получаем ID пользователей, на которых подписан текущий пользователь
+    const following = currentUser.following || [];
+
+    // Получаем популярные посты, исключая посты от подписок и самого пользователя
+    const explorePosts = await Post.find({
+      user_id: { $nin: [...following, userId] },
+    })
+      .populate('user_id', 'username avatar_url') // Добавляем информацию о пользователе
+      .sort({
+        likes_count: -1,
+        comments_count: -1,
+        created_at: -1,
+      })
+      .limit(30);
+
+    res.status(200).json({ posts: explorePosts });
+  } catch (error) {
+    console.error("Explore error:", error);
+    res.status(500).json({ error: "Ошибка при получении постов для explore" });
   }
 };
