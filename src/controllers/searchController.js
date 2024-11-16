@@ -1,15 +1,18 @@
-import User from '../models/userModel.js';
-import Post from '../models/postModel.js';
+import User from "../models/userModel.js";
+import Post from "../models/postModel.js";
 
 // Поиск пользователей по имени
 export const searchUsers = async (req, res) => {
   const { query } = req.query;
 
   try {
-    const users = await User.find({ username: { $regex: query, $options: 'i' } }).select('username bio');
+    const users = await User.find({
+      username: { $regex: query, $options: "i" },
+    }).select("username profile_image _id"); // Добавляем profile_image в выборку
+
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при поиске пользователей' });
+    res.status(500).json({ error: "Ошибка при поиске пользователей" });
   }
 };
 
@@ -18,16 +21,18 @@ export const searchPosts = async (req, res) => {
   const { query } = req.query;
 
   try {
-    const filter = query ? {
-      $or: [
-        { content: { $regex: query, $options: 'i' } },
-        { caption: { $regex: query, $options: 'i' } }
-      ]
-    } : {};
+    const filter = query
+      ? {
+          $or: [
+            { content: { $regex: query, $options: "i" } },
+            { caption: { $regex: query, $options: "i" } },
+          ],
+        }
+      : {};
 
-    const posts = await Post.find(filter).populate('user_id', 'username');
+    const posts = await Post.find(filter).populate("user_id", "username");
     res.status(200).json(posts);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при поиске постов' });
+    res.status(500).json({ error: "Ошибка при поиске постов" });
   }
 };
