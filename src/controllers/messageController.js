@@ -28,11 +28,11 @@ export const sendMessage = async (userId, targetUserId, messageText, roomId, io)
       created_at: new Date(),
     });
 
-    await message.save(); // Сохранение сообщения в базе данных
+    await message.save();
 
-    // Отправляем сообщение всем пользователям в комнате
-    io.to(roomId).emit('receiveMessage', message);
+    // Отправляем сообщение всем подключенным клиентам
+    io.emit("receiveMessage", message); // Изменено с io.to(roomId) на io.emit
   } catch (error) {
-    console.error('Ошибка при отправке сообщения:', error);
+    console.error("Ошибка при отправке сообщения:", error);
   }
 };
