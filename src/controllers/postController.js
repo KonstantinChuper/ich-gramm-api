@@ -195,7 +195,7 @@ export const getExplorePosts = async (req, res) => {
     const explorePosts = await Post.find({
       user_id: { $nin: [...following, userId] },
     })
-      .populate('user_id', 'username avatar_url') // Добавляем информацию о пользователе
+      .populate('user_id', 'username avatar_url')
       .sort({
         likes_count: -1,
         comments_count: -1,

@@ -8,12 +8,12 @@ const router = express.Router();
 router.get('/:userId/notifications', authMiddleware, getUserNotifications);
 
 // Создание нового уведомления
-router.post('/notifications', authMiddleware, createNotification);
+router.post('/', authMiddleware, createNotification);
 
 // Удаление уведомления
-router.delete('/notifications/:notificationId', authMiddleware, deleteNotification);
+router.delete('/:notificationId', authMiddleware, deleteNotification);
 
 // Обновление статуса уведомления
-router.patch('/notifications/:notificationId', authMiddleware, updateNotificationStatus);
+router.patch('/:notificationId', authMiddleware, updateNotificationStatus);
 
 export default router;

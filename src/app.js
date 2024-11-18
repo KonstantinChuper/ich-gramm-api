@@ -21,7 +21,6 @@ const allowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Разрешаем запросы без origin (например, от Postman)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -31,16 +30,13 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     exposedHeaders: ["Authorization"],
   })
 );
 
-// Добавьте поддержку для формы с файлами
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware для обработки JSON
 app.use(express.json());
 
 // Подключение маршрутов
@@ -65,5 +61,4 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Экспорт приложения для использования в server.js
 export default app;

@@ -1,38 +1,46 @@
-import Notification from '../models/notificationModel.js';
-import User from '../models/userModel.js';
+import Notification from "../models/notificationModel.js";
+import User from "../models/userModel.js";
+import { emitNotification } from "../middlewares/notificationSocketHandler.js";
 
 // Получение всех уведомлений пользователя
 export const getUserNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ user_id: req.params.userId }).sort({ created_at: -1 });
+    const notifications = await Notification.find({ user_id: req.params.userId }).sort({
+      created_at: -1,
+    });
     res.status(200).json(notifications);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при получении уведомлений' });
+    res.status(500).json({ error: "Ошибка при получении уведомлений" });
   }
 };
 
 // Создание нового уведомления
 export const createNotification = async (req, res) => {
-  const { userId, type, content } = req.body;
+  const { user_id, type, content } = req.body;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findById(user_id);
 
     if (!user) {
-      return res.status(404).json({ error: 'Пользователь не найден' });
+      return res.status(404).json({ error: "Пользователь не найден" });
     }
 
     const notification = new Notification({
-      user_id: userId,
+      user_id,
       type,
       content,
       created_at: new Date(),
     });
 
     await notification.save();
+
+    // Отправляем уведомление через WebSocket
+    const io = req.app.get("io");
+    emitNotification(io, user_id, notification);
+
     res.status(201).json(notification);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при создании уведомления' });
+    res.status(500).json({ error: "Ошибка при создании уведомления" });
   }
 };
 
@@ -42,13 +50,13 @@ export const deleteNotification = async (req, res) => {
     const notification = await Notification.findById(req.params.notificationId);
 
     if (!notification) {
-      return res.status(404).json({ error: 'Уведомление не найдено' });
+      return res.status(404).json({ error: "Уведомление не найдено" });
     }
 
     await Notification.findByIdAndDelete(req.params.notificationId);
-    res.status(200).json({ message: 'Уведомление удалено' });
+    res.status(200).json({ message: "Уведомление удалено" });
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при удалении уведомления' });
+    res.status(500).json({ error: "Ошибка при удалении уведомления" });
   }
 };
 
@@ -58,7 +66,7 @@ export const updateNotificationStatus = async (req, res) => {
     const notification = await Notification.findById(req.params.notificationId);
 
     if (!notification) {
-      return res.status(404).json({ error: 'Уведомление не найдено' });
+      return res.status(404).json({ error: "Уведомление не найдено" });
     }
 
     notification.is_read = req.body.is_read;
@@ -66,6 +74,6 @@ export const updateNotificationStatus = async (req, res) => {
 
     res.status(200).json(notification);
   } catch (error) {
-    res.status(500).json({ error: 'Ошибка при обновлении статуса уведомления' });
+    res.status(500).json({ error: "Ошибка при обновлении статуса уведомления" });
   }
 };
