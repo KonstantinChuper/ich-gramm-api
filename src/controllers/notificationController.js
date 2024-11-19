@@ -16,7 +16,7 @@ export const getUserNotifications = async (req, res) => {
 
 // Создание нового уведомления
 export const createNotification = async (req, res) => {
-  const { user_id, sender_id, type, content } = req.body;
+  const { user_id, sender_id, type, content, avatar, postImg } = req.body;
 
   try {
     const user = await User.findById(user_id);
@@ -28,8 +28,13 @@ export const createNotification = async (req, res) => {
     const notification = new Notification({
       user_id,
       sender_id,
+      avatar,
+      postImg,
       type,
-      content,
+      content: {
+        username: content.username,
+        message: content.message,
+      },
       created_at: new Date(),
     });
 
