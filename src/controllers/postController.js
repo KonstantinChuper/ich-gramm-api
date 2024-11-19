@@ -96,12 +96,23 @@ export const getPostById = async (req, res) => {
   const { postId } = req.params;
 
   try {
-    const post = await Post.findById(postId).populate("user_id", "username");
-    if (!post) return res.status(404).json({ error: "Пост не найден" });
+    const post = await Post.findById(postId)
+      .populate("user_id", "username _id profile_image") // Добавляем нужные поля
+      .lean(); // Для лучшей производительности
+
+    if (!post) {
+      return res.status(404).json({ error: "Пост не найден" });
+    }
+
+    console.log("Sending post data:", post); // Для отладки
 
     res.status(200).json(post);
   } catch (error) {
-    res.status(500).json({ error: "Ошибка при получении поста" });
+    console.error("Error in getPostById:", error);
+    res.status(500).json({
+      error: "Ошибка при получении поста",
+      details: error.message,
+    });
   }
 };
 
