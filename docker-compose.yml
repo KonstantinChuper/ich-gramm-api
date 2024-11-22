@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  ich-gramm-api:
+    build:
+      context: ./ich-gramm-api
+      dockerfile: Dockerfile
+    container_name: ich-gramm-api
+    ports:
+      - "5000:5000"
+    env_file:
+      - ich-gramm-api/.env
+    # depends_on:
+    #   - mongo
+    # volumes:
+    #   - .env:/ich-gramm-api/.env
+  ich-gramm:
+    build:
+      context: ./ich-gramm
+      dockerfile: Dockerfile
+    container_name: ich-gramm-dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - ich-gramm/.env
+    # depends_on:
+    #   - mongo
+    # volumes:
+    #   - .env:/ich-gramm-dev/.env    
+#   mongo-database:
+#     container_name: mongo-database
+#     image: mongo:7
+#     restart: always
+#     ports:
+#       - 27017:27017
+#     command: --auth --bind_ip 0.0.0.0
+#     environment:
+#        MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+#        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+#        MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+#     env_file:
+#       - .env
+#     volumes:
+#       - ./data/db:/data/db
+
+# volumes:
+#   mongo-data:
