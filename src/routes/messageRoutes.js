@@ -1,13 +1,20 @@
-import jwt from 'jsonwebtoken';
-import { loadMessages, sendMessage } from '../controllers/messageController.js';
-import User from '../models/userModel.js';
+import express from "express";
+import jwt from "jsonwebtoken";
+import {
+  loadMessages,
+  sendMessage,
+  getLastMessagesForUser,
+} from "../controllers/messageController.js";
+import { authenticateToken } from "../middlewares/authMiddleware.js";
+import User from "../models/userModel.js";
 
-// Проверка JWT токена для WebSocket
+const router = express.Router();
+
 export const authenticateSocket = async (socket, next) => {
-  const token = socket.handshake.auth.token; // Извлекаем токен из handshake.auth
+  const token = socket.handshake.auth.token;
 
   if (!token) {
-    return next(new Error('Доступ запрещен. Токен не предоставлен.'));
+    return next(new Error("Доступ запрещен. Токен не предоставлен."));
   }
 
   try {
@@ -15,38 +22,37 @@ export const authenticateSocket = async (socket, next) => {
     const user = await User.findById(decoded.user_id);
 
     if (!user) {
-      return next(new Error('Пользователь не найден.'));
+      return next(new Error("Пользователь не найден."));
     }
 
-    // Добавляем проверенного пользователя в socket
     socket.user = user;
     next();
   } catch (error) {
-    return next(new Error('Неверный токен.'));
+    return next(new Error("Неверный токен."));
   }
 };
 
-// Обработка WebSocket событий
 export const messageSocketHandler = (socket, io) => {
-  // Подключение пользователя к комнате
-  socket.on('joinRoom', ({ targetUserId }) => {
-    const userId = socket.user._id; // Используем userId из проверенного токена
-    const roomId = [userId, targetUserId].sort().join('_');
+  socket.on("joinRoom", ({ targetUserId }) => {
+    const userId = socket.user._id;
+    const roomId = [userId, targetUserId].sort().join("_");
     socket.join(roomId);
 
-    // Загрузка истории сообщений при подключении
     loadMessages(userId, targetUserId, socket);
   });
 
-  // Отправка сообщений
-  socket.on('sendMessage', ({ targetUserId, messageText }) => {
-    const userId = socket.user._id; // Используем userId из токена
-    const roomId = [userId, targetUserId].sort().join('_');
+  socket.on("sendMessage", ({ targetUserId, messageText }) => {
+    const userId = socket.user._id;
+    const roomId = [userId, targetUserId].sort().join("_");
     sendMessage(userId, targetUserId, messageText, roomId, io);
   });
 
-  // Отключение пользователя
-  socket.on('disconnect', () => {
-    console.log('Пользователь отключился');
+  socket.on("disconnect", () => {
+    console.log("Пользователь отключился");
   });
 };
+
+// Добавляем роут для получения последних сообщений
+router.get("/last", authenticateToken, getLastMessagesForUser);
+
+export default router;

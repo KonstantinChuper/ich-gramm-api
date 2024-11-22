@@ -4,6 +4,9 @@ import app from "./app.js";
 import { Server } from "socket.io";
 import { messageSocketHandler, authenticateSocket } from "./routes/messageRoutes.js";
 import { notificationSocketHandler } from "./middlewares/notificationSocketHandler.js";
+import events from "events";
+
+events.EventEmitter.defaultMaxListeners = 15;
 
 dotenv.config();
 connectDB();
