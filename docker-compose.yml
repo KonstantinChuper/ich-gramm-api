@@ -4,7 +4,7 @@ services:
   ich-gramm-api:
     build:
       context: ./ich-gramm-api
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: ich-gramm-api
     ports:
       - "5000:5000"
@@ -17,7 +17,7 @@ services:
   ich-gramm:
     build:
       context: ./ich-gramm
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: ich-gramm-dev
     ports:
       - "3000:3000"

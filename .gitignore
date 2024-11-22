@@ -1,6 +1,5 @@
 /.env
 /node_modules
 /src/config/cloudinary.js
-dockerfile
 .env
 .dockerignore
